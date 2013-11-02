@@ -17,6 +17,8 @@ function player_c(color, x, y, width, height)
   this.color = color;
   this.x = x;
   this.y = y;
+  this.vx = 0;
+  this.vy = 0;
   this.width = width;
   this.height = height;
   this.isInvincible = false;
@@ -75,13 +77,21 @@ function player_c(color, x, y, width, height)
 }
 
 players.push(new player_c("#00A", 10, 40, 30, 30));
-players.push(new player_c("#0A0", 750, 550, 30, 30));
+players.push(new player_c("#0A0", 10, 550, 30, 30));
+players.push(new player_c("#A00", 750, 550, 30, 30));
+players.push(new player_c("#0ff", 750, 40, 30, 30));
 
 window.Joysticks[0] = window.Joysticks[0] || {};
 window.Joysticks[0].on_a = players[0].shoot;
 
 window.Joysticks[1] = window.Joysticks[1] || {};
 window.Joysticks[1].on_a = players[1].shoot;
+
+window.Joysticks[2] = window.Joysticks[2] || {};
+window.Joysticks[2].on_a = players[2].shoot;
+
+window.Joysticks[3] = window.Joysticks[3] || {};
+window.Joysticks[3].on_a = players[3].shoot;
 
 function bullet_c(owner, bPos, vx, vy) {
   this.active = true;
@@ -123,6 +133,7 @@ function enemy_c(x,y,vx,vy,size) {
   this.width = 14*size;
   this.height = 14*size;
 
+<<<<<<< HEAD
   this.sprite = Sprite("enemy");
       
    var background = new Image();
@@ -131,6 +142,9 @@ function enemy_c(x,y,vx,vy,size) {
 // Make sure the image is loaded first otherwise nothing will draw.
 
 
+=======
+  //this.sprite = Sprite("enemy");
+>>>>>>> 6b525de15477a94fe77a6c5c63deb1fe49d8621a
 
   this.draw = function() {
     this.sprite.draw(canvas, this.x, this.y);
@@ -214,11 +228,13 @@ function update() {
 
 function updatePlayers() {
   var player;
-  for(i=0;i<2;i++) {
+  for(i=0;i<players.length;i++) {
     if(Joysticks[i].stick === undefined){
       continue;
     }
     player = players[i];
+    
+    
     player.x += Joysticks[i].stick[0]*5;
     player.y += Joysticks[i].stick[1]*5;
     
@@ -283,11 +299,19 @@ background.onload = function(){
     enemy.draw();
   });
   canvas.fillStyle="#FFF";
+<<<<<<< HEAD
   canvas.font = '30pt'
   canvas.fillText("P1:" + players[0].lives, 50, 50);
 
   
 
+=======
+  canvas.font = 'normal 30pt sans-serif'
+  canvas.fillText("P1:" + players[0].lives, players[0].spawn_x, players[0].spawn_y);
+  canvas.fillText("P2:" + players[1].lives, players[1].spawn_x, players[1].spawn_y);
+  canvas.fillText("P3:" + players[2].lives, players[2].spawn_x-50, players[2].spawn_y);
+  canvas.fillText("P4:" + players[3].lives, players[3].spawn_x-50, players[3].spawn_y);
+>>>>>>> 6b525de15477a94fe77a6c5c63deb1fe49d8621a
 }
 
 function collides(a, b) {
@@ -296,6 +320,25 @@ function collides(a, b) {
     a.y < b.y + b.height &&
     a.y + a.height > b.y;
 }
+
+function changeDirection() {
+  var enemy;
+  for(i=0;i<enemies.length;i++){
+    enemy = enemies[i];
+    enemy.vx = Math.floor((Math.random()*8)-4);
+    enemy.vy = Math.floor((Math.random()*8)-4);
+  }
+}
+
+function bindToB(start, direction) {
+  var TIME_UNTIL_SHOOT = start - new Date();
+    setTimeout(changeDirection, TIME_UNTIL_SHOOT);
+}
+
+window.Joysticks[0].on_b = bindToB;
+window.Joysticks[1].on_b = bindToB;
+window.Joysticks[2].on_b = bindToB;
+window.Joysticks[3].on_b = bindToB;
 
 function handleCollisions() {
   playerBullets.forEach(function(bullet) {
