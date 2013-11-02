@@ -1,4 +1,25 @@
 (function () {
+  var notes = {
+    whole: 1,
+    dottedHalf: 0.75,
+    half: 0.5,
+    dottedQuarter: 0.375,
+    tripletHalf: 0.33333334,
+    quarter: 0.25,
+    dottedEighth: 0.1875,
+    tripletQuarter: 0.166666667,
+    eighth: 0.125,
+    dottedSixteenth: 0.09375,
+    tripletEighth: 0.083333333,
+    sixteenth: 0.0625,
+    tripletSixteenth: 0.041666667,
+    thirtySecond: 0.03125
+  }
+
+  function get_duration(note, tempo) {
+      return notes[note] * tempo / 60;
+  }
+  
   function create_white_noise(audioContext, destination) {
       var bufferSize = 2 * audioContext.sampleRate,
           noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate),
@@ -227,13 +248,14 @@
   }
 
   instrument = {
-    note: function (rhythm, pitch) {
+    note: function (rhythm, pitch, start_at) {
       var started_at = this.歌姫.started_at
-      var current = this.context.currentTime
-      var until = current % (30.0 / this.歌姫.tempo) // All notes are eigth for now
+      var current = start_at
+      var duration = get_duration(rhythm, this.歌姫.tempo)
+      var until = current % duration
 
       var start_at = current + until
-      var stop_at = current + until + (30.0 / this.歌姫.tempo)
+      var stop_at = start_at + duration
 
       var gain = this.context.createGain()
       gain.connect(this.歌姫.gain)
@@ -243,7 +265,8 @@
       gain.gain.setValueAtTime(1.0, stop_at)
       gain.gain.linearRampToValueAtTime(0.0, stop_at + 0.001)
 
-      var node = create_sound(this.context, gain, 'sawtooth', equal_temperament[pitch.trim()])
+      var node = create_sound(this.context, gain, 'square', equal_temperament[pitch.trim()])
+
       node.start(start_at)
       node.stop(stop_at)
 
