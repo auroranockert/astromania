@@ -120,7 +120,7 @@ function enemy_c(x,y,vx,vy,size) {
   this.width = 8*size;
   this.height = 8*size;
 
-  this.sprite = Sprite("enemy");
+  //this.sprite = Sprite("enemy");
 
   this.draw = function() {
     this.sprite.draw(canvas, this.x, this.y);
@@ -255,8 +255,9 @@ function draw() {
     enemy.draw();
   });
   canvas.fillStyle="#FFF";
-  canvas.font = '30pt'
-  canvas.fillText("P1:" + players[0].lives, 50, 50);
+  canvas.font = 'normal 30pt sans-serif'
+  canvas.fillText("P1:" + players[0].lives, CANVAS_WIDTH/2-150, 50);
+  canvas.fillText("P2:" + players[1].lives, CANVAS_WIDTH/2+50, 50);
 }
 
 function collides(a, b) {
