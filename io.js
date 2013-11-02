@@ -21,9 +21,9 @@ void (function () {
     case 40:
       gamepads[0].stick[1] =  1.0; break
     case 65:
-      gamepads[0].a = true; break
+      gamepads[0].a = false; trigger_note(0, 'a', gamepads[0].stick); break
     case 83:
-      gamepads[0].b = true; break
+      gamepads[0].b = false; trigger_note(0, 'b', gamepads[0].stick); break
     }
 
     event.preventDefault()
@@ -38,7 +38,7 @@ void (function () {
     case 40:
       gamepads[0].stick[1] = 0.0; break
     case 65:
-      gamepads[0].a = false; trigger_note(0, gamepads[0].stick); break
+      gamepads[0].a = false; break
     case 83:
       gamepads[0].b = false; break
     }
@@ -66,8 +66,6 @@ void (function () {
 
   if (!gp.init()) { console.log('failed to init') }
 
-  var piano = utahime.create_instrument()
-
   gp.bind(Gamepad.Event.BUTTON_DOWN, function (e) {
     if (e.gamepad.id.match(/Mayflash/)) {
       var a = (e.control === 'LEFT_BOTTOM_SHOULDER') ? true : false
@@ -78,38 +76,51 @@ void (function () {
     }
 
     if (a) {
-      trigger_note(e.gamepad.index + 1, gamepads[e.gamepad.index + 1].stick)
+      trigger_note(e.gamepad.index + 1, 'a', gamepads[e.gamepad.index + 1].stick)
+    } else if (b) {
+      trigger_note(e.gamepad.index + 1, 'b', gamepads[e.gamepad.index + 1].stick)
     }
   })
 
   utahime.start()
 
-  function trigger_note (index, stick) {
-    if ((utahime[index] || 0) <= utahime.context.currentTime) {
-      if (stick[0] === -1 && stick[1] === -1) { // TOP-LEFT
-        var n0 = 'B#4', n1 = 'B#3', n2 = 'C#3', n3 = 'B#3'
-      } else if (stick[0] === -1 && stick[1] === 1) { // BOTTOM-LEFT
-        var n0 = 'D#4', n1 = 'D#3', n2 = 'E#3', n3 = 'D#3'
-      } else if (stick[0] === -1) { // LEFT
-        var n0 = 'C#4', n1 = 'C#3', n2 = 'D#3', n3 = 'C#3'
-      } else if (stick[0] === 1 && stick[1] === -1) { // TOP-RIGHT
-        var n0 = 'B4', n1 = 'B3', n2 = 'C3', n3 = 'B3'
-      } else if (stick[0] === 1 && stick[1] === 1) { // BOTTOM-RIGHT
-        var n0 = 'D4', n1 = 'D3', n2 = 'E3', n3 = 'D3'
-      } else if (stick[0] === 1) { // RIGHT
-        var n0 = 'C4', n1 = 'C3', n2 = 'D3', n3 = 'C3'
-      } else if (stick[1] === -1) { // TOP
-        var n0 = 'A4', n1 = 'A3', n2 = 'B3', n3 = 'A3'
-      } else if (stick[1] === 1) { // BOTTOM
-        var n0 = 'E4', n1 = 'E3', n2 = 'F3', n3 = 'E3'
-      }
+  function trigger_note (index, button, stick) {
+    var current_time = utahime.context.currentTime
 
-      if (n0) {
-        var current_time = utahime.context.currentTime
-        utahime[index] = piano.note('eighth', n0, current_time)
-        var s2 = piano.note('tripletSixteenth', n1, current_time)
-        var s3 = piano.note('tripletSixteenth', n2, s2)
-        piano.note('tripletSixteenth', n3, s3)
+    utahime[button] = utahime[button] || {}
+
+    if (stick[0] === -1 && stick[1] === -1) { // TOP-LEFT
+      var n = 'B#'
+    } else if (stick[0] === -1 && stick[1] === 1) { // BOTTOM-LEFT
+      var n = 'D#'
+    } else if (stick[0] === -1) { // LEFT
+      var n = 'C#'
+    } else if (stick[0] === 1 && stick[1] === -1) { // TOP-RIGHT
+      var n = 'B'
+    } else if (stick[0] === 1 && stick[1] === 1) { // BOTTOM-RIGHT
+      var n = 'D'
+    } else if (stick[0] === 1) { // RIGHT
+      var n = 'C'
+    } else if (stick[1] === -1) { // TOP
+      var n = 'A'
+    } else if (stick[1] === 1) { // BOTTOM
+      var n = 'E'
+    }
+
+    if ((utahime[button][index] || 0) <= current_time) {
+      if (button === 'a') {
+        if (n) {
+          utahime[button][index] = utahime.pulse(current_time, n + '3', 0.5, {
+            attack: 0.01, decay: 'eighth', sustain: 0.8, release: 0.1
+          })
+        }
+      } else if (button === 'b') {
+        utahime.triangle(current_time, n + '3', {
+          attack: 0.01, decay: 'eighth', sustain: 4.0, release: 0.1
+        })
+        utahime.noise(current_time, {
+          attack: 0.01, decay: 'eighth', sustain: 4.0, release: 0.1
+        })
       }
     }
   }

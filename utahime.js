@@ -17,10 +17,14 @@
   }
 
   function get_duration(note, tempo) {
-      return notes[note] * tempo / 60;
+    if (typeof note === 'string') {
+      return notes[note] * tempo / 60
+    } else {
+      return note
+    }
   }
-  
-  function create_white_noise(audioContext, destination) {
+
+  function create_white_noise(audioContext) {
       var bufferSize = 2 * audioContext.sampleRate,
           noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate),
           output = noiseBuffer.getChannelData(0);
@@ -32,12 +36,10 @@
       whiteNoise.buffer = noiseBuffer;
       whiteNoise.loop = true;
 
-      whiteNoise.connect(destination);
-
       return whiteNoise;
   }
 
-  function create_pink_noise(audioContext, destination) {
+  function create_pink_noise(audioContext) {
       var bufferSize = 2 * audioContext.sampleRate,
           noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate),
           output = noiseBuffer.getChannelData(0),
@@ -61,12 +63,10 @@
       pinkNoise.buffer = noiseBuffer;
       pinkNoise.loop = true;
 
-      pinkNoise.connect(destination);
-
       return pinkNoise;
   }
 
-  function create_brownian_noise(audioContext, destination) {
+  function create_brownian_noise(audioContext) {
       var bufferSize = 2 * audioContext.sampleRate,
           noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate),
           output = noiseBuffer.getChannelData(0),
@@ -82,25 +82,14 @@
       brownianNoise.buffer = noiseBuffer;
       brownianNoise.loop = true;
 
-      brownianNoise.connect(destination);
-
       return brownianNoise;
   }
 
-  var types = {
-      sine: 0,
-      square: 1,
-      sawtooth: 2,
-      triangle: 3
-  }
-
-  function create_sound(audioContext, destination, name, frequency) {
+  function create_sound(audioContext, name, frequency) {
       var o = audioContext.createOscillator();
 
-      // Connect note to volume
-      o.connect(destination);
       // Set pitch type
-      o.type = types[name];
+      o.type = name;
       // Set frequency
       o.frequency.value = frequency;
 
@@ -247,33 +236,6 @@
     'C8': 4186.01
   }
 
-  instrument = {
-    note: function (rhythm, pitch, start_at) {
-      var started_at = this.歌姫.started_at
-      var current = start_at
-      var duration = get_duration(rhythm, this.歌姫.tempo)
-      var until = current % duration
-
-      var start_at = current + until
-      var stop_at = start_at + duration
-
-      var gain = this.context.createGain()
-      gain.connect(this.歌姫.gain)
-
-      gain.gain.setValueAtTime(0.0, start_at - 0.001)
-      gain.gain.linearRampToValueAtTime(1.0, start_at)
-      gain.gain.setValueAtTime(1.0, stop_at)
-      gain.gain.linearRampToValueAtTime(0.0, stop_at + 0.001)
-
-      var node = create_sound(this.context, gain, 'square', equal_temperament[pitch.trim()])
-
-      node.start(start_at)
-      node.stop(stop_at)
-
-      return stop_at
-    }
-  }
-
   window.歌姫 = function (tempo) {
     this.tempo = tempo
     this.started_at = null
@@ -283,14 +245,52 @@
     this.gain.connect(this.context.destination)
   }
 
-  window.歌姫.prototype.create_instrument = function () {
-    return Object.create(instrument, {
-      歌姫: { value: this },
-      context: { value: this.context }
-    })
-  }
-
   window.歌姫.prototype.start = function () {
     this.started_at = this.context.currentTime
+  }
+
+  function create_gain(utahime, source, start_at, adsr) {
+    var started_at = utahime.started_at
+    var duration = get_duration(adsr.decay, utahime.tempo)
+
+    var start_at = start_at + start_at % duration
+    var stop_at = start_at + duration
+
+    var gain = utahime.context.createGain()
+
+    gain.gain.setValueAtTime(0.0, start_at - get_duration(adsr.attack))
+    gain.gain.linearRampToValueAtTime(1.0, start_at)
+    gain.gain.linearRampToValueAtTime(adsr.sustain, stop_at)
+    gain.gain.linearRampToValueAtTime(0.0, stop_at + get_duration(adsr.release))
+
+    source.connect(gain)
+    gain.connect(utahime.gain)
+
+    source.start(start_at)
+    source.stop(stop_at + get_duration(adsr.release))
+
+    return stop_at
+  }
+
+  window.歌姫.prototype.pulse = function (start_at, frequency, duty_cycle, adsr) {
+    var node = create_sound(this.context, 'square', equal_temperament[frequency.trim()])
+
+    node.detune.value = 2
+
+    return create_gain(this, node, start_at, adsr)
+  }
+
+  window.歌姫.prototype.triangle = function (start_at, frequency, adsr) {
+    var node = create_sound(this.context, 'triangle', equal_temperament[frequency.trim()])
+
+    node.detune.value = 2
+
+    return create_gain(this, node, start_at, adsr)
+  }
+
+  window.歌姫.prototype.noise = function (start_at, adsr) {
+    var node = create_brownian_noise(this.context)
+
+    return create_gain(this, node, start_at, adsr)
   }
 })()
