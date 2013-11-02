@@ -250,7 +250,7 @@
     this.started_at_date = new Date()
   }
 
-  function create_gain(utahime, source, start_at, adsr) {
+  function create_gain(utahime, source, start_at, adsr, onEnd) {
     var started_at = utahime.started_at
     var duration = get_duration(adsr.decay, utahime.tempo)
 
@@ -260,7 +260,7 @@
     var gain = utahime.context.createGain()
 
     gain.gain.setValueAtTime(0.0, start_at - get_duration(adsr.attack))
-    gain.gain.linearRampToValueAtTime(1.0, start_at)
+    gain.gain.linearRampToValueAtTime(adsr.volume || 1.0, start_at)
     gain.gain.linearRampToValueAtTime(adsr.sustain, stop_at)
     gain.gain.linearRampToValueAtTime(0.0, stop_at + get_duration(adsr.release))
 
@@ -270,28 +270,30 @@
     source.start(start_at)
     source.stop(stop_at + get_duration(adsr.release))
 
+    source.onended = onEnd
+
     return { start: start_at, end: stop_at }
   }
 
-  window.歌姫.prototype.pulse = function (start_at, frequency, duty_cycle, adsr) {
+  window.歌姫.prototype.pulse = function (start_at, frequency, duty_cycle, adsr, onEnd) {
     var node = create_sound(this.context, 'square', equal_temperament[frequency.trim()])
 
     node.detune.value = 2
 
-    return create_gain(this, node, start_at, adsr)
+    return create_gain(this, node, start_at, adsr, onEnd)
   }
 
-  window.歌姫.prototype.triangle = function (start_at, frequency, adsr) {
+  window.歌姫.prototype.triangle = function (start_at, frequency, adsr, onEnd) {
     var node = create_sound(this.context, 'triangle', equal_temperament[frequency.trim()])
 
     node.detune.value = 2
 
-    return create_gain(this, node, start_at, adsr)
+    return create_gain(this, node, start_at, adsr, onEnd)
   }
 
-  window.歌姫.prototype.noise = function (start_at, adsr) {
+  window.歌姫.prototype.noise = function (start_at, adsr, onEnd) {
     var node = create_brownian_noise(this.context)
 
-    return create_gain(this, node, start_at, adsr)
+    return create_gain(this, node, start_at, adsr, onEnd)
   }
 })()
