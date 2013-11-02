@@ -95,13 +95,13 @@ void (function () {
       var n = 'B#'
     } else if (stick[0] < -0.5 && stick[1] > 0.5) { // BOTTOM-LEFT
       var n = 'D#'
-    } else if (stick[0] === -1) { // LEFT
+    } else if (stick[0] < -0.5) { // LEFT
       var n = 'C#'
-    } else if (stick[0] === 1 && stick[1] === -1) { // TOP-RIGHT
+    } else if (stick[0] > 0.5 && stick[1] < -0.5) { // TOP-RIGHT
       var n = 'B'
-    } else if (stick[0] === 1 && stick[1] === 1) { // BOTTOM-RIGHT
+    } else if (stick[0] > 0.5 && stick[1] > 0.5) { // BOTTOM-RIGHT
       var n = 'D'
-    } else if (stick[0] === 1) { // RIGHT
+    } else if (stick[0] > 0.5) { // RIGHT
       var n = 'C'
     } else if (stick[1] === -1) { // TOP
       var n = 'A'
@@ -114,6 +114,14 @@ void (function () {
         if (n) {
           var timing = utahime.pulse(current_time, n + '3', 0.5, {
             attack: 0.01, decay: 'eighth', sustain: 0.8, release: 0.1, volume: 2.0
+          })
+
+          var s0 = utahime.triangle(current_time, n + '3', {
+            attack: 0.01, decay: 'eighth', sustain: 0.0, release: 0.1, volume: 0.0
+          }).end
+
+          utahime.triangle(s0, n + '3', {
+            attack: 0.01, decay: 'eighth', sustain: 2.0, release: 0.1, volume: 3.0
           })
 
           if (gamepads[index].on_a) {
