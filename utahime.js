@@ -247,6 +247,7 @@
 
   window.歌姫.prototype.start = function () {
     this.started_at = this.context.currentTime
+    this.started_at_date = new Date()
   }
 
   function create_gain(utahime, source, start_at, adsr) {
@@ -269,7 +270,7 @@
     source.start(start_at)
     source.stop(stop_at + get_duration(adsr.release))
 
-    return stop_at
+    return { start: start_at, end: stop_at }
   }
 
   window.歌姫.prototype.pulse = function (start_at, frequency, duty_cycle, adsr) {

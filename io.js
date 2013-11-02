@@ -56,10 +56,14 @@ void (function () {
 
   gp.bind(Gamepad.Event.TICK, function (pads) {
     pads.map(function (pad) {
+      gamepads[pad.index + 1] = gamepads[pad.index + 1] || {}
+      gamepads[pad.index + 1].stick = pad.axes.slice(0, 2)
       if (pad.id.match(/Mayflash/)) {
-        gamepads[pad.index + 1] = { stick: pad.axes.slice(0, 2), a: pad.buttons[6] === 1, b: pad.buttons[3] === 1 }
+        gamepads[pad.index + 1].a = pad.buttons[6] === 1
+        gamepads[pad.index + 1].b = pad.buttons[3] === 1
       } else {
-        gamepads[pad.index + 1] = { stick: pad.axes.slice(0, 2), a: pad.buttons[0] === 1, b: pad.buttons[1] === 1 }
+        gamepads[pad.index + 1].a = pad.buttons[0] === 1
+        gamepads[pad.index + 1].b = pad.buttons[1] === 1
       }
     })
   })
@@ -107,21 +111,41 @@ void (function () {
       var n = 'E'
     }
 
-    if ((utahime[button][index] || 0) <= current_time) {
+    if (n && (utahime[button][index] || 0) <= current_time) {
       if (button === 'a') {
         if (n) {
-          utahime[button][index] = utahime.pulse(current_time, n + '3', 0.5, {
+          var timing = utahime.pulse(current_time, n + '3', 0.5, {
             attack: 0.01, decay: 'eighth', sustain: 0.8, release: 0.1
           })
+
+          if (gamepads[index].on_a) {
+            gamepads[index].on_a(new Date(window.Songstress.started_at_date.getTime() + 1000 * timing.start))
+          }
         }
       } else if (button === 'b') {
-        utahime.triangle(current_time, n + '3', {
+        var timing = utahime.triangle(current_time, n + '3', {
           attack: 0.01, decay: 'eighth', sustain: 4.0, release: 0.1
         })
         utahime.noise(current_time, {
           attack: 0.01, decay: 'eighth', sustain: 4.0, release: 0.1
         })
+
+        if (gamepads[index].on_b) {
+          gamepads[index].on_b(new Date(window.Songstress.started_at_date.getTime() + 1000 * timing.start))
+        }
       }
+
+      utahime[button][index] = timing.end
     }
+  }
+})()
+
+void (function () {
+  window.Joysticks[0].on_a = function (start) {
+    console.log('A: ', start)
+  }
+
+  window.Joysticks[0].on_b = function (start) {
+    console.log('B: ', start)
   }
 })()
