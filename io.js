@@ -119,7 +119,7 @@ void (function () {
           })
 
           if (gamepads[index].on_a) {
-            gamepads[index].on_a(new Date(window.Songstress.started_at_date.getTime() + 1000 * timing.start))
+            gamepads[index].on_a(new Date(utahime.started_at_date.getTime() + 1000 * timing.start), stick)
           }
         }
       } else if (button === 'b') {
@@ -131,7 +131,7 @@ void (function () {
         })
 
         if (gamepads[index].on_b) {
-          gamepads[index].on_b(new Date(window.Songstress.started_at_date.getTime() + 1000 * timing.start))
+          gamepads[index].on_b(new Date(utahime.started_at_date.getTime() + 1000 * timing.start), stick)
         }
       }
 
@@ -141,11 +141,11 @@ void (function () {
 })()
 
 void (function () {
-  window.Joysticks[0].on_a = function (start) {
+  window.Joysticks[0].on_a = function (start, direction) {
     console.log('A: ', start)
   }
 
-  window.Joysticks[0].on_b = function (start) {
+  window.Joysticks[0].on_b = function (start, direction) {
     console.log('B: ', start)
   }
 })()
