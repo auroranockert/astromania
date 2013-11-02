@@ -47,10 +47,13 @@ function player_c(color, x, y, width, height)
     }.bind(this), RESPAWN_INVINCIBILITY_TIMEOUT);
     
   }.bind(this);
-  
+  var background = new Image();
+  background.src = "cat.png";
   this.draw = function() {
     canvas.fillStyle = this.color;
     canvas.fillRect(this.x, this.y, this.width, this.height);
+    canvas.drawImage(background,this.x, this.y);  
+     canvas.drawImage(background,30, 0,30,30,30,0,0,0);  
   };
   
   this.shoot = function(start, direction) {
@@ -117,18 +120,31 @@ function enemy_c(x,y,vx,vy,size) {
   this.vx = vx;
   this.vy = vy;
 
-  this.width = 8*size;
-  this.height = 8*size;
+  this.width = 14*size;
+  this.height = 14*size;
 
   this.sprite = Sprite("enemy");
+      
+   var background = new Image();
+  background.src = "cheese.png";
+
+// Make sure the image is loaded first otherwise nothing will draw.
+
+
 
   this.draw = function() {
     this.sprite.draw(canvas, this.x, this.y);
+  //  this.sprite.drawImage(background,this.x, this.y); 
+  //   canvas.drawImage(background,0,0);
   };
   
   this.draw = function() {
     canvas.fillStyle = this.color;
-    canvas.fillRect(this.x, this.y, this.width, this.height);
+  //  canvas.fillRect(this.x, this.y, this.width, this.height); 
+    //background.width = this.width;
+    //background.heigth = this.height;
+ //   console.log( background.heigth)
+     canvas.drawImage(background,this.x, this.y,this.height,this.width);  
   };
 
 
@@ -164,6 +180,9 @@ spawnEnemies(6);
 var canvasElement = $("<canvas width='" + CANVAS_WIDTH + 
   "' height='" + CANVAS_HEIGHT + "'></canvas");
 var canvas = canvasElement.get(0).getContext("2d");
+
+
+
 canvasElement.appendTo('body');
 
 setInterval(function() {
@@ -238,9 +257,18 @@ function updateBullets() {
 }
 
 function draw() {
-  canvas.fillStyle="grey";
+  canvas.fillStyle="lightblue";
   canvas.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  
+      
+  /*    
+    
+   var background = new Image();
+  background.src = "sky.png";
+
+// Make sure the image is loaded first otherwise nothing will draw.
+background.onload = function(){
+    canvas.drawImage(background,0,0); 
+                                  }                              */
   players.forEach(function(player) {
     if (!player.dead) {
       player.draw()
@@ -257,6 +285,9 @@ function draw() {
   canvas.fillStyle="#FFF";
   canvas.font = '30pt'
   canvas.fillText("P1:" + players[0].lives, 50, 50);
+
+  
+
 }
 
 function collides(a, b) {
@@ -300,3 +331,12 @@ function handleCollisions() {
     }
   });
 }
+console.log(players[0])
+  for(var i = 0; i < players[0].lives; i++){
+      console.log("ss");
+      $('.lifebar').append('<img id="theImg" src="noter.png" />')
+     
+     }
+     
+
+
